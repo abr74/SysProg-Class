@@ -22,5 +22,6 @@
         "titleBar.inactiveBackground": "#004c4d99",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.remoteColor": "#004c4d"
+    "peacock.remoteColor": "#004c4d",
+    "C_Cpp.errorSquiggles": "enabled"
 }
