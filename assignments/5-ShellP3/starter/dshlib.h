@@ -1,3 +1,4 @@
+#include<stdbool.h>
 #ifndef __DSHLIB_H__
     #define __DSHLIB_H__
 
@@ -16,11 +17,13 @@ typedef struct command
     char args[ARG_MAX];
 } command_t;
 
-typedef struct cmd_buff
-{
-    int  argc;
+typedef struct cmd_buff {
+    int argc;
     char *argv[CMD_ARGV_MAX];
     char *_cmd_buffer;
+    char *input_filepath; 
+    char *output_filepath;  
+    bool is_append;  
 } cmd_buff_t;
 
 /* WIP - Move to next assignment 
@@ -81,8 +84,6 @@ Built_In_Cmds exec_built_in_cmd(cmd_buff_t *cmd);
 int exec_local_cmd_loop();
 int exec_cmd(cmd_buff_t *cmd);
 int execute_pipeline(command_list_t *clist);
-
-
 
 
 //output constants
