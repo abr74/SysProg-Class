@@ -90,33 +90,29 @@
  *   function after cleaning things up.  See the documentation for client_cleanup()
  *      
  */
-int exec_remote_cmd_loop(char *address, int port)
-{
-    char *cmd_buff;
-    char *rsp_buff;
-    int cli_socket;
-    ssize_t io_size;
-    int is_eof;
-
-    // TODO set up cmd and response buffs
-
-    cli_socket = start_client(address,port);
-    if (cli_socket < 0){
+ int exec_remote_cmd_loop(char *address, int port) {
+    char *cmd_buff = malloc(SH_CMD_MAX);
+    char *rsp_buff = malloc(RDSH_COMM_BUFF_SZ);
+    int cli_socket = start_client(address, port);
+    if (cli_socket < 0) {
         perror("start client");
         return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_RDSH_CLIENT);
     }
 
-    while (1) 
-    {
-        // TODO print prompt
+    while (1) {
+        printf("%s", SH_PROMPT);
+        if (fgets(cmd_buff, SH_CMD_MAX, stdin) == NULL) {
+            break; // Exit on EOF
+        }
+        send(cli_socket, cmd_buff, strlen(cmd_buff) + 1, 0); // Send null-terminated command
 
-        // TODO fgets input
-
-        // TODO send() over cli_socket
-
-        // TODO recv all the results
-
-        // TODO break on exit command
+        ssize_t bytes_received;
+        while ((bytes_received = recv(cli_socket, rsp_buff, RDSH_COMM_BUFF_SZ, 0)) > 0) {
+            printf("%.*s", (int)bytes_received, rsp_buff);
+            if (rsp_buff[bytes_received - 1] == RDSH_EOF_CHAR) {
+                break; // End of response
+            }
+        }
     }
 
     return client_cleanup(cli_socket, cmd_buff, rsp_buff, OK);
@@ -148,10 +144,25 @@ int exec_remote_cmd_loop(char *address, int port)
 int start_client(char *server_ip, int port){
     struct sockaddr_in addr;
     int cli_socket;
-    int ret;
+    // int ret;
 
     // TODO set up cli_socket
+    cli_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (cli_socket < 0){
+        perror("socket");
+        return ERR_RDSH_CLIENT;
+    }
 
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(server_ip);
+    addr.sin_port = htons(port);
+
+    if (connect(cli_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0){
+        perror("connect");
+        close(cli_socket);
+        return ERR_RDSH_CLIENT;
+    }
 
     return cli_socket;
 }
